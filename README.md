@@ -1,1 +1,1 @@
-![LOGO](https://ibb.co/VHZTBC9)
+![LOGO](https://i.ibb.co/HNsqgP4/logo.png)
