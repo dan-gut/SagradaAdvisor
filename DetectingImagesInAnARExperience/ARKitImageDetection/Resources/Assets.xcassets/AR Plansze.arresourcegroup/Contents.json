@@ -1,0 +1,95 @@
+{
+  "info" : {
+    "version" : 1,
+    "author" : "xcode"
+  },
+  "resources" : [
+    {
+      "filename" : "apollo.arreferenceimage"
+    },
+    {
+      "filename" : "bog_ojciec.arreferenceimage"
+    },
+    {
+      "filename" : "droga_zycia.arreferenceimage"
+    },
+    {
+      "filename" : "gwiezdny_pyl.arreferenceimage"
+    },
+    {
+      "filename" : "kosmyczny_sekret.arreferenceimage"
+    },
+    {
+      "filename" : "krolestwo_cyfr.arreferenceimage"
+    },
+    {
+      "filename" : "krolewska_purpura.arreferenceimage"
+    },
+    {
+      "filename" : "łowca_promieni.arreferenceimage"
+    },
+    {
+      "filename" : "majestyatyczny_szczyt.arreferenceimage"
+    },
+    {
+      "filename" : "mistrzowska_ukladanka.arreferenceimage"
+    },
+    {
+      "filename" : "moc_natury.arreferenceimage"
+    },
+    {
+      "filename" : "ognisty_podmuch.arreferenceimage"
+    },
+    {
+      "filename" : "poranny_przyplyw.arreferenceimage"
+    },
+    {
+      "filename" : "potega_umyslu.arreferenceimage"
+    },
+    {
+      "filename" : "prawdziwe_zloto.arreferenceimage"
+    },
+    {
+      "filename" : "sekeret_pryzmatu.arreferenceimage"
+    },
+    {
+      "filename" : "sen_o_lataniu.arreferenceimage"
+    },
+    {
+      "filename" : "staznik.arreferenceimage"
+    },
+    {
+      "filename" : "swiatlosc_swiata.arreferenceimage"
+    },
+    {
+      "filename" : "symfonia_swiata.arreferenceimage"
+    },
+    {
+      "filename" : "triumf_slonca.arreferenceimage"
+    },
+    {
+      "filename" : "wieczny_lod.arreferenceimage"
+    },
+    {
+      "filename" : "wirujace_krople.arreferenceimage"
+    },
+    {
+      "filename" : "wladca_swiata.arreferenceimage"
+    },
+    {
+      "filename" : "woda_i_ogien.arreferenceimage"
+    },
+    {
+      "filename" : "zlodziej_cienia.arreferenceimage"
+    },
+    {
+      "filename" : "zwyciestwo_piekna.arreferenceimage"
+    },
+    {
+      "filename" : "zyciodajna_woda.arreferenceimage"
+    },
+    {
+      "filename" : "zywy_ogien.arreferenceimage"
+    }
+  ]
+}
