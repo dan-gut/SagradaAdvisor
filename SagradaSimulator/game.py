@@ -303,19 +303,18 @@ class Game:
                 return_vector.extend(empty_dice)
             else:
                 return_vector.extend(self._get_dice_one_hot(self.dices_on_table[i]))
-
-        assert(len(return_vector) == 48)
         return return_vector
 
 
     def _action_out(self):
         '''
         function will return:
-             - dices on table (that were randomly picked) - "one hot", 
-             - number of dices to pick left (normalized)
-             - current player's board state as "one hot" vector
-             - player points (normalized) -> assuming max points (15 * 6) + 20
-             - bool if game is finished (True == finished)
+            - vector consiting of:
+                * dices on table (that were randomly picked) - "one hot", 
+                * number of dices to pick left (normalized)
+                * current player's board state as "one hot" vector
+            - player points (normalized) -> assuming max points (15 * 6) + 20
+            - bool if game is finished (True == finished)
 
         *(15 * 6) + 20 = 110
         - 15: max number of dices of one color (only one specific color gives points to player)
@@ -325,12 +324,24 @@ class Game:
         In practice this score is not reachable since it means that player during game  got 
         15 out of 40 dices in his color and also all of them were "6".
         '''
+        out_vec = []
         board_state = self.player.board.get_board_state_one_hot()
         assert(len(board_state) == 540)
-        return (self.get_dices_on_table_one_hot(), 
-                (Game.DICES_TO_PICK_BY_PLAYER - self.player.move_counter)/2,
-                board_state,
-                (self.player.calculate_points() + 20) / 110.0,
+        
+        dices_table = self.get_dices_on_table_one_hot()
+        assert(len(dices_table) == 48)
+
+        dices_to_pick = (Game.DICES_TO_PICK_BY_PLAYER - self.player.move_counter) / 2
+
+        out_vec.extend(board_state)
+        out_vec.extend(dices_table)
+        out_vec.append(dices_to_pick)
+        
+        normalized_points = (self.player.calculate_points() + 20) / 110.0
+        
+        return (
+                out_vec,
+                normalized_points,
                 self._game_finished
                 )
 
@@ -388,8 +399,8 @@ if __name__ == "__main__":
     ], "Zywy ogien")
 
     game = Game(Player("Pawel", board, attribute["RED"]))
-    #scores = []
-    for i in range(100000):
+    scores = []
+    for i in range(10000):
         state = game.reset()
         game_over = state[-1]
         while game_over == False:
@@ -397,8 +408,8 @@ if __name__ == "__main__":
             possible_actions = game.possible_actions()
             state = game.step(possible_actions[-1]) #pick last possible action
         points = state[-2]
-        #scores.append(points)
+        scores.append(points)
     
-    # print(sum(scores)/ len(scores))
+    print(sum(scores)/ len(scores))
             
     
