@@ -62,6 +62,24 @@ class TestSagradaGame(unittest.TestCase):
         zeros_copy[7 + 5] = 1  #GREEN
         self.assertEqual(self.board._get_field_one_hot_representation(4, 3), zeros_copy)
 
+    def test_get_dices_on_table_one_hot(self):
+        player = Player("test", self.board, attribute["RED"])
+        game = Game(player)
+        game.dices_on_table = [ \
+            Dice(attribute['RED'], attribute['ONE']), \
+            Dice(attribute['GREEN'], attribute['TWO']), \
+            Dice(attribute['BLUE'], attribute['THREE']), \
+            #empty_dice
+            ]
+        
+        one_hot = game.get_dices_on_table_one_hot()
+        self.assertEqual(one_hot, [\
+            0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
+            0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0,
+            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+            ])
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -229,6 +229,15 @@ class Player:
         self.board = board
         self.main_mission_color = main_mission_color
         self.move_counter = 0
+        self.check_params()
+
+    def check_params(self):
+        if self.main_mission_color not in [attribute['RED'], \
+                                           attribute['PURPLE'], \
+                                           attribute['YELLOW'], \
+                                           attribute['BLUE'], \
+                                           attribute['GREEN']]:
+            raise RuntimeError("main_mission_color must be color!")
 
     def reset(self):
         self.move_counter = 0
@@ -270,21 +279,58 @@ class Game:
             random_index = random.randint(0, len(self._dices_to_draw_from) - 1)
             self.dices_on_table.append(self._dices_to_draw_from.pop(random_index))
 
+    def _get_dice_one_hot(self, dice):
+        '''One hot vector of 12 values'''
+        vec = [0 for i in range(12)]
+        vec[dice.color] = 1
+        vec[dice.value] = 1
+        return vec
+
+    def get_dices_on_table_one_hot(self):
+        '''this will return one hot for each dice on table, to keep one_hot vector the same lenght
+            no matter how many dices on board
+            return format:
+            - empty -> one on first position
+            - bits [1-6] - digits 1 - 6
+            - bits [7-11] - colors RED - GREEN
+        '''
+        empty_dice = [0 for i in range(12)]
+        empty_dice[0] = 1
+
+        return_vector = []
+        for i in range(4):
+            if i >= len(self.dices_on_table):
+                return_vector.extend(empty_dice)
+            else:
+                return_vector.extend(self._get_dice_one_hot(self.dices_on_table[i]))
+
+        assert(len(return_vector) == 48)
+        return return_vector
+
+
     def _action_out(self):
         '''
         function will return:
-             - dices on table (that were randomly picked), 
-             - number of dices to pick left 
-             - current player's board state as one hot vector
-             - player points
+             - dices on table (that were randomly picked) - "one hot", 
+             - number of dices to pick left (normalized)
+             - current player's board state as "one hot" vector
+             - player points (normalized) -> assuming max points (15 * 6) + 20
              - bool if game is finished (True == finished)
+
+        *(15 * 6) + 20 = 110
+        - 15: max number of dices of one color (only one specific color gives points to player)
+        - 6: max number of points per dice in proper color
+        - 20: "-20" is minimal number of points if no dices on table.
+
+        In practice this score is not reachable since it means that player during game  got 
+        15 out of 40 dices in his color and also all of them were "6".
         '''
         board_state = self.player.board.get_board_state_one_hot()
         assert(len(board_state) == 540)
-        return (self.dices_on_table, 
-                Game.DICES_TO_PICK_BY_PLAYER - self.player.move_counter, 
+        return (self.get_dices_on_table_one_hot(), 
+                (Game.DICES_TO_PICK_BY_PLAYER - self.player.move_counter)/2,
                 board_state,
-                self.player.calculate_points(),
+                (self.player.calculate_points() + 20) / 110.0,
                 self._game_finished
                 )
 
@@ -342,14 +388,17 @@ if __name__ == "__main__":
     ], "Zywy ogien")
 
     game = Game(Player("Pawel", board, attribute["RED"]))
-    state = game.reset()
-    game_over = state[-1]
-    while game_over == False:
-        points = state[-2]
+    #scores = []
+    for i in range(100000):
+        state = game.reset()
         game_over = state[-1]
-        possible_actions = game.possible_actions()
-        print(points)
-        
-        state = game.step(possible_actions[-1]) #pick last possible action
-        
+        while game_over == False:
+            game_over = state[-1]
+            possible_actions = game.possible_actions()
+            state = game.step(possible_actions[-1]) #pick last possible action
+        points = state[-2]
+        #scores.append(points)
+    
+    # print(sum(scores)/ len(scores))
+            
     
