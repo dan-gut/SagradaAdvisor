@@ -1,49 +1,67 @@
 import unittest
 from game import *
+import copy
 
 class TestSagradaGame(unittest.TestCase):
 
     def setUp(self):
         self.board = Board([
-            [Attribute.THREE, Attribute.FOUR, Attribute.ONE,    Attribute.FIVE,   Attribute.ALL],
-            [Attribute.ALL,   Attribute.SIX,  Attribute.TWO,    Attribute.ALL,    Attribute.YELLOW],
-            [Attribute.ALL,   Attribute.ALL,  Attribute.ALL,    Attribute.YELLOW, Attribute.RED],
-            [Attribute.FIVE,  Attribute.ALL,  Attribute.YELLOW, Attribute.RED,    Attribute.SIX]
-
+            [attribute["THREE"], attribute["FOUR"], attribute["ONE"],    attribute["FIVE"],   attribute["ALL"]],
+            [attribute["ALL"],   attribute["SIX"],  attribute["TWO"],    attribute["ALL"],    attribute["YELLOW"]],
+            [attribute["ALL"],   attribute["ALL"],  attribute["ALL"],    attribute["YELLOW"], attribute["RED"]],
+            [attribute["FIVE"],  attribute["ALL"],  attribute["YELLOW"], attribute["RED"],    attribute["SIX"]]
         ], "Zywy ogien")
 
     def test_can_put_dice(self):
-        dice = Dice(Attribute.RED, Attribute.SIX)
+        dice = Dice(attribute["RED"], attribute["SIX"])
         self.assertEqual(self.board._can_put_dice(0,0, dice), False)
         self.assertEqual(self.board._can_put_dice(1,1, dice), False)
-        dice = Dice(Attribute.RED, Attribute.THREE)
+        dice = Dice(attribute["RED"], attribute["THREE"])
         self.assertEqual(self.board._can_put_dice(0,0, dice), True)
-        dice = Dice(Attribute.RED, Attribute.THREE)
+        dice = Dice(attribute["RED"], attribute["THREE"])
         self.assertEqual(self.board._can_put_dice(1,3, dice), True)
         self.assertEqual(self.board._can_put_dice(0,3, dice), False)
         self.assertEqual(self.board._can_put_dice(3,3, dice), True)
 
-    def test_get_possible_actions(self):
-        dices = [
-            Dice(Attribute.RED, Attribute.SIX), 
-            Dice(Attribute.RED, Attribute.THREE), 
-            Dice(Attribute.RED, Attribute.ONE), 
-            Dice(Attribute.BLUE, Attribute.THREE)
-            ]
+    def test_get_field_binary_representation(self):
+        self.assertEqual(self.board._get_field_binary_representation(0, 0), int('0b0000000011', 2))
+        self.assertEqual(self.board._get_field_binary_representation(0, 2), 0)
+        
+        self.board.put_dice(0, 0, Dice(attribute["RED"], attribute['THREE']))
+        self.assertEqual(self.board._get_field_binary_representation(0, 0), int('0b0110010011', 2))
 
-        possible_actions = self.board.get_possible_actions(dices)
-        self.assertEqual(possible_actions[0],  None)
-        self.assertEqual(possible_actions[1],  [0, 1, dices[0]])
-        self.assertEqual(possible_actions[2],  [0, 2, dices[0]])
-        self.assertEqual(possible_actions[3],  [0, 0, dices[1]])
-        self.assertEqual(possible_actions[4],  [0, 1, dices[1]])
-        self.assertEqual(possible_actions[5],  [0, 2, dices[1]])
-        self.assertEqual(possible_actions[6],  [0, 1, dices[2]])
-        self.assertEqual(possible_actions[7],  [0, 2, dices[2]])
-        self.assertEqual(possible_actions[8],  [2, 0, dices[2]])
-        self.assertEqual(possible_actions[9],  [0, 0, dices[3]])
-        self.assertEqual(possible_actions[10], [0, 1, dices[3]])
-        self.assertEqual(possible_actions[11], [0, 2, dices[3]])
+        self.board.put_dice(4, 3, Dice(attribute['GREEN'], attribute['SIX']))
+        self.assertEqual(self.board._get_field_binary_representation(4, 3), int('0b1101010110', 2))
+    
+    def test_get_field_one_hot_representation(self):
+        zeros = [0 for i in range(27)]
+        
+        zeros_copy = copy.deepcopy(zeros)
+        zeros_copy[14 + 3] = 1 #THREE
+        zeros_copy[0] = 1      #no value
+        zeros_copy[7] = 1      #no color
+        self.assertEqual(self.board._get_field_one_hot_representation(0, 0), zeros_copy)
+
+        zeros_copy = copy.deepcopy(zeros)
+        zeros_copy[14 + 0] = 1 #all
+        zeros_copy[0] = 1      #no value
+        zeros_copy[7] = 1      #no color
+        self.assertEqual(self.board._get_field_one_hot_representation(0, 2), zeros_copy)
+        
+        self.board.put_dice(0, 0, Dice(attribute["RED"], attribute['THREE']))
+        zeros_copy = copy.deepcopy(zeros)
+        zeros_copy[14 + 3] = 1 #THREE
+        zeros_copy[3] = 1      #THREE
+        zeros_copy[8] = 1      #RED
+        self.assertEqual(self.board._get_field_one_hot_representation(0, 0), zeros_copy)
+
+        self.board.put_dice(4, 3, Dice(attribute['GREEN'], attribute['SIX']))
+        zeros_copy = copy.deepcopy(zeros)
+        zeros_copy[14 + 6] = 1 #SIX
+        zeros_copy[6] = 1      #SIX
+        zeros_copy[7 + 5] = 1  #GREEN
+        self.assertEqual(self.board._get_field_one_hot_representation(4, 3), zeros_copy)
+
 
 if __name__ == "__main__":
     unittest.main()

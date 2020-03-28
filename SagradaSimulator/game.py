@@ -8,6 +8,7 @@ import random
 #     colors: RED, PURPLE, YELLOW, RED, BLUE, GREEN
 #     empty: 12
 #     '''
+
 attribute = {
     "ALL"    :   0,
     "ONE"    :   1,
@@ -17,11 +18,11 @@ attribute = {
     "FIVE"   :   5,
     "SIX"    :   6,
 
-    "RED"    :   7,
-    "PURPLE" :   8,
-    "YELLOW" :   9,
-    "BLUE"   :  10,
-    "GREEN"  :  11,
+    "RED"    :   7, #1
+    "PURPLE" :   8, #2
+    "YELLOW" :   9, #3
+    "BLUE"   :  10, #4
+    "GREEN"  :  11, #5
 
     "EMPTY"  :  12,
 }
@@ -65,6 +66,8 @@ class Board:
         self.board_view = board_view
         self.board_name = board_name
         self.reset()
+
+    
 
     def reset(self):
         self.dices = [
@@ -153,8 +156,57 @@ class Board:
                 if self.dices[y + y_delta][x + x_delta] is not attribute["EMPTY"]:
                     return True
         
-
         return True
+
+    def _get_field_binary_representation(self, x, y):
+        '''Although field can be represented as dice or requirement for dice, it is much more convenient for outside use
+        to represent state of each field on board as number. This not only allows to use required types only inside this library
+        but also gives convienience in use because of not requiring knowledge about game. 
+        Function returns number which represents state of field.
+        Each field can have several values depending on board and dice put there:
+        - color or value on board picked + "any dice" -> 12 + 1 states = 13 states
+        - color of dice 6 states (0 - no dice, 1 - RED, ...)
+        - value of dice 7 states (0 - no dice, 1 - 1, ...)
+        this together yields 42*13 = 546 different states. To represent them 10 bits will be used.
+        _ _ _|_ _ _|_ _ _ _|
+        value|color| field |
+        
+        '''
+        if self.dices[y][x] == attribute["EMPTY"]:
+            return self.board_view[y][x]
+        else:
+            return (self.dices[y][x].value << 7 | (self.dices[y][x].color - 6) << 4 | self.board_view[y][x])
+
+    def get_board_state_binary(self):
+        ret = []
+        for y in range(Board.BOARD_Y_MAX + 1):
+            for x in range(Board.BOARD_X_MAX + 1):
+                ret.append(self._get_field_binary_representation(x, y))
+        return ret
+
+    def _get_field_one_hot_representation(self, x, y):
+        pass
+        '''
+        Field can be represented as one hot, this requires vector of length 7 + 7 + 13. See _get_field_binary_representation for details.
+        Returns vector for field with x, y position
+        '''
+        ret = [0 for i in range(27)]
+        if self.dices[y][x] == attribute["EMPTY"]:
+            ret[0] = 1
+            ret[7] = 1
+        else:
+            ret[self.dices[y][x].value] = 1
+            ret[self.dices[y][x].color + 1] = 1
+
+        ret[self.board_view[y][x] + 14] = 1
+        return ret
+
+    def get_board_state_one_hot(self):
+        ret = []
+        for y in range(Board.BOARD_Y_MAX + 1):
+            for x in range(Board.BOARD_X_MAX + 1):
+                ret.extend(self._get_field_one_hot_representation(x, y))
+        return ret
 
     def get_possible_actions(self, dices):
         actions = [None] #it is always possible to do nothing
@@ -223,16 +275,15 @@ class Game:
         function will return:
              - dices on table (that were randomly picked), 
              - number of dices to pick left 
-             - current player's board_view (what can be put where) 
-             - dices (where are dices on board), as list of digits - see Enum Attributes
+             - current player's board state as one hot vector
              - player points
              - bool if game is finished (True == finished)
         '''
-
+        board_state = self.player.board.get_board_state_one_hot()
+        assert(len(board_state) == 540)
         return (self.dices_on_table, 
                 Game.DICES_TO_PICK_BY_PLAYER - self.player.move_counter, 
-                self.player.board.board_view,
-                self.player.board.dices,
+                board_state,
                 self.player.calculate_points(),
                 self._game_finished
                 )
