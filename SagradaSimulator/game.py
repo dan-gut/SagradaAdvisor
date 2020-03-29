@@ -289,6 +289,10 @@ class Game:
                 self._dices_to_draw_from.append(Dice.get_random_dice(color))
         
     def toss_random_dices(self, count):
+        # self.dices_on_table.append(Dice(attribute["RED"], attribute['SIX']))
+        # self.dices_on_table.append(Dice(attribute["RED"], attribute['FIVE']))
+        # self.dices_on_table.append(Dice(attribute["BLUE"], attribute['ONE']))
+        # self.dices_on_table.append(Dice(attribute["GREEN"], attribute['FOUR']))
         for i in range(count):
             random_index = random.randint(0, len(self._dices_to_draw_from) - 1)
             self.dices_on_table.append(self._dices_to_draw_from.pop(random_index))
@@ -392,13 +396,13 @@ class Game:
         if self.round == Game.NUMBER_OF_ROUNDS:
             self._game_finished = True
             return self._action_out()
-
-        if self.player.move_counter == Game.DICES_TO_PICK_BY_PLAYER:
-            self.next_round()
+        
 
         #no action
         if action_number == -1:
             self.player.move_counter += 1
+            if self.player.move_counter == Game.DICES_TO_PICK_BY_PLAYER:
+                self.next_round()
             return self._action_out()
 
         
@@ -411,6 +415,8 @@ class Game:
         #illegal action
         if dice_number == len(self.dices_on_table):
             self.player.move_counter += 1
+            if self.player.move_counter == Game.DICES_TO_PICK_BY_PLAYER:
+                self.next_round()
             return self._action_out()
 
         dice = self.dices_on_table[dice_number]
@@ -418,6 +424,8 @@ class Game:
         #if wrong action (illegal move) was given, just pretend as -1 action happened
         if not self.player.board._can_put_dice(x, y, dice):
             self.player.move_counter += 1
+            if self.player.move_counter == Game.DICES_TO_PICK_BY_PLAYER:
+                self.next_round()
             return self._action_out()
         
         #proper action
@@ -425,10 +433,12 @@ class Game:
         self.player.board.put_dice(x, y, dice)
         self.player.move_counter += 1
         self.dices_on_table.remove(dice)
+        if self.player.move_counter == Game.DICES_TO_PICK_BY_PLAYER:
+            self.next_round()
         return self._action_out()
 
 if __name__ == "__main__":
-    logging.getLogger().setLevel(logging.NOTSET)
+    logging.getLogger().setLevel(logging.INFO)
     board = Board([
         [attribute["THREE"], attribute["FOUR"], attribute["ONE"],    attribute["FIVE"],   attribute["ALL"]],
         [attribute["ALL"],   attribute["SIX"],  attribute["TWO"],    attribute["ALL"],    attribute["YELLOW"]],
@@ -439,17 +449,17 @@ if __name__ == "__main__":
 
     game = Game(Player("Pawel", board, attribute["RED"]))
     scores = []
-    for i in range(10000):
+    for i in range(1000):
         state = game.reset()
         game_over = state[-1]
         while game_over == False:
             game_over = state[-1]
             possible_actions = game.possible_actions()
             #print(possible_actions)
-            state = game.step(possible_actions[-1]) #pick last possible action
+            state = game.step(possible_actions[random.randint(0, len(possible_actions)-1)]) #pick last possible action
         points = state[-2]
         scores.append(points)
     
-    #print(sum(scores)/ len(scores))
+    print(sum(scores)/ len(scores))
             
     
