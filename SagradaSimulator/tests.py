@@ -80,6 +80,24 @@ class TestSagradaGame(unittest.TestCase):
             1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
             ])
 
+    def test_index_2_xy(self):
+        self.assertEqual(Board.index_2_xy(0),  (0, 0))
+        self.assertEqual(Board.index_2_xy(3),  (3, 0))
+        self.assertEqual(Board.index_2_xy(5),  (0, 1))
+        self.assertEqual(Board.index_2_xy(9),  (4, 1))
+        self.assertEqual(Board.index_2_xy(22), (2, 0))
+
+    def test_xy_2_index(self):
+        self.assertEqual(Board.xy_2_index(0, 0), (0))
+        self.assertEqual(Board.xy_2_index(3, 0), (3))
+        self.assertEqual(Board.xy_2_index(0, 1), (5))
+        self.assertEqual(Board.xy_2_index(4, 1), (9))
+        self.assertEqual(Board.xy_2_index(2, 0), (2))
+
+    def test_index_2_xy_2_index(self):
+        for i in range(19):
+            self.assertEqual(Board.xy_2_index(*Board.index_2_xy(i)), i)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,5 +1,6 @@
-from enum import Enum
 import random
+import math
+import logging
 
 '''
 #     We have 13 possible states on board
@@ -45,6 +46,7 @@ class Board:
     BOARD_X_MAX = 4
     BOARD_Y_MIN = 0
     BOARD_Y_MAX = 3
+    NUMBER_OF_FIELDS = 20
     '''
     [
      [(0,0), (1,0), (2,0), (3,0), (4,0)],
@@ -67,7 +69,18 @@ class Board:
         self.board_name = board_name
         self.reset()
 
-    
+    @staticmethod
+    def index_2_xy(index):
+        if index >= Board.NUMBER_OF_FIELDS:
+            index %= Board.NUMBER_OF_FIELDS
+
+        x = index % (Board.BOARD_X_MAX + 1)
+        y = math.floor(index / (Board.BOARD_X_MAX + 1))
+        return x, y
+
+    @staticmethod
+    def xy_2_index(x, y):
+        return y * (Board.BOARD_X_MAX + 1) + x
 
     def reset(self):
         self.dices = [
@@ -209,12 +222,13 @@ class Board:
         return ret
 
     def get_possible_actions(self, dices):
-        actions = [None] #it is always possible to do nothing
-        for dice in dices:
+        actions = [-1] #it is always possible to do nothing
+        for dice_index, dice in enumerate(dices):
             for x in range(Board.BOARD_X_MAX + 1):
                 for y in range(Board.BOARD_Y_MAX + 1):
                     if self._can_put_dice(x, y, dice):
-                        actions.append([x, y, dice])
+                        actions.append(Board.xy_2_index(x, y) + (20 * dice_index))
+                        #print(Board.xy_2_index(x, y), (20 * dice_index))
         return actions
 
 class Player:
@@ -313,13 +327,13 @@ class Game:
                 * dices on table (that were randomly picked) - "one hot", 
                 * number of dices to pick left (normalized)
                 * current player's board state as "one hot" vector
-            - player points (normalized) -> assuming max points (15 * 6) + 20
+            - player points (normalized) -> assuming max points (15 * 6) + NUMBER_OF_FIELDS
             - bool if game is finished (True == finished)
 
-        *(15 * 6) + 20 = 110
+        *(15 * 6) + Board.NUMBER_OF_FIELDS = 110
         - 15: max number of dices of one color (only one specific color gives points to player)
         - 6: max number of points per dice in proper color
-        - 20: "-20" is minimal number of points if no dices on table.
+        - NUMBER_OF_FIELDS: "-NUMBER_OF_FIELDS" is minimal number of points if no dices on table.
 
         In practice this score is not reachable since it means that player during game  got 
         15 out of 40 dices in his color and also all of them were "6".
@@ -337,7 +351,7 @@ class Game:
         out_vec.extend(dices_table)
         out_vec.append(dices_to_pick)
         
-        normalized_points = (self.player.calculate_points() + 20) / 110.0
+        normalized_points = (self.player.calculate_points() + Board.NUMBER_OF_FIELDS) / 110.0
         
         return (
                 out_vec,
@@ -356,40 +370,65 @@ class Game:
         return self.player.board.get_possible_actions(self.dices_on_table)
 
     def next_round(self):
+        self.dices_on_table = []
+        self.round += 1
+        self.player.move_counter %= 2
         self.toss_random_dices(self._dices_to_draw_each_round)
 
-    def step(self, action):
+    def step(self, action_number):
         '''For one player, he has to pick 2 dices out of four, one step will be to pick dice and put it in correct position
             function return value: see self._action_out(self) function
-            action parameter has to be in format:
-                [x, y, dice]
-            or None if no action is performed (skip move)
-        ''' 
-        if self._game_finished:
-            return self._action_out()
-        
-        self.round += 1
+            action parameter is integer in range [-1, self._dices_to_draw_each_round * Board.NUMBER_OF_FIELDS]
+            [0-19] -> dice 0 to field [0-19]
+            [20-39] -> dice 1 to field [0-19]
+            ...
+            -1 - No action
+            fields are indexed first in x axis then in y axis
+            
+            or -1 if no action is performed (skip move)
+        '''
 
-        self.player.move_counter += 1
-        if action == None:
-            pass
-        else:
-            if self.player.board.put_dice(*action):
-                self.dices_on_table.remove(action[2])
-            else:
-                raise RuntimeError("Cannot put dice there!")
-        
+        #print(self.round)
         if self.round == Game.NUMBER_OF_ROUNDS:
             self._game_finished = True
             return self._action_out()
 
-
-        if self.player.move_counter == 2:
+        if self.player.move_counter == Game.DICES_TO_PICK_BY_PLAYER:
             self.next_round()
+
+        #no action
+        if action_number == -1:
+            self.player.move_counter += 1
+            return self._action_out()
+
         
+        dice_number = math.floor(action_number / Board.NUMBER_OF_FIELDS)
+        logging.debug("step: dice_number: {}, action_number: {}".format(dice_number, action_number))
+        #print(dice_number)
+        field_index = action_number % Board.NUMBER_OF_FIELDS
+        x, y = Board.index_2_xy(field_index)
+        
+        #illegal action
+        if dice_number == len(self.dices_on_table):
+            self.player.move_counter += 1
+            return self._action_out()
+
+        dice = self.dices_on_table[dice_number]
+
+        #if wrong action (illegal move) was given, just pretend as -1 action happened
+        if not self.player.board._can_put_dice(x, y, dice):
+            self.player.move_counter += 1
+            return self._action_out()
+        
+        #proper action
+        #print(self.dices_on_table)
+        self.player.board.put_dice(x, y, dice)
+        self.player.move_counter += 1
+        self.dices_on_table.remove(dice)
         return self._action_out()
 
 if __name__ == "__main__":
+    logging.getLogger().setLevel(logging.NOTSET)
     board = Board([
         [attribute["THREE"], attribute["FOUR"], attribute["ONE"],    attribute["FIVE"],   attribute["ALL"]],
         [attribute["ALL"],   attribute["SIX"],  attribute["TWO"],    attribute["ALL"],    attribute["YELLOW"]],
@@ -406,10 +445,11 @@ if __name__ == "__main__":
         while game_over == False:
             game_over = state[-1]
             possible_actions = game.possible_actions()
+            #print(possible_actions)
             state = game.step(possible_actions[-1]) #pick last possible action
         points = state[-2]
         scores.append(points)
     
-    print(sum(scores)/ len(scores))
+    #print(sum(scores)/ len(scores))
             
     
