@@ -22,7 +22,7 @@ model.add(Dense(600, input_dim=589, activation='relu'))
 model.add(Dense(800, activation='relu'))
 model.add(Dense(300, activation='relu'))
 model.add(Dense(actionsCount, activation='linear'))
-model.compile(loss='mse', optimizer=Adam(), metrics=['mae'])
+model.compile(loss='mse', optimizer=SGD(), metrics=['mae'])
 
 # Memory (Remember & Replay)
 memory = []
@@ -41,9 +41,10 @@ def train(epochs):
     game = Game(Player("Pawel", board, attribute["RED"]))
 
     scores = []
-    f = open(str(time.time()) + "_" + "training.out", "w+")
+    #f = open(str(time.time()) + "_" + "training.out", "w+")
     try:
-        model.load_weights("weights.h5")
+        pass
+        #model.load_weights("weights.h5")
     except:
         logging.warning("No weights for network found!")
 
@@ -51,11 +52,11 @@ def train(epochs):
         r = simulate(game)
         scores.append(r)
         logging.info("epoch: {} score: {} avg_score: {}".format(epoch, r, sum(scores[-20:])/(20.0)))
-        f.write(str(r) + "\n")
-        if epoch%1000 == 0:
-            model.save_weights("weights.h5")
+        #f.write(str(r) + "\n")
+        #if epoch%1000 == 0:
+        #    model.save_weights("weights.h5")
 
-    f.close()
+    #f.close()
     model.save_weights("weights.h5")
         
 def pick_best_possible(prediction, possible_actions):
@@ -93,7 +94,7 @@ def simulate(game):
         #print(target_f)
         #print(a)
         target_f[a] = target
-        model.fit(s, target_f.reshape(-1, actionsCount), epochs=1, verbose=0)
+        #model.fit(s, target_f.reshape(-1, actionsCount), epochs=1, verbose=0)
         # if r > 0.1:
         memory.append((copy.deepcopy(game), s, a, r, newS, done))
         s = newS
@@ -123,4 +124,5 @@ def simulate(game):
 
 
 if __name__ == "__main__":
-    train(100000)
+    train(10000)
+    

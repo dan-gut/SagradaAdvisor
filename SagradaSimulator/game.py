@@ -28,7 +28,10 @@ attribute = {
     "EMPTY"  :  12,
 }
 
+num_to_color = {7 : "R", 8: "P", 9:"Y", 10:"B", 11:"G"}
+
 class Dice:
+    
     def __init__(self, color, value):
         self.color = color #7 - 11
         self.value = value #1 - 6
@@ -38,7 +41,7 @@ class Dice:
         return Dice(color, random.randint(1, 6))
 
     def __str__(self):
-        return "Dice: " + "C: " + str(self.color) +  " V: " +  str(self.value)
+        return str(num_to_color[self.color]) + str(self.value)
         
 
 class Board:
@@ -68,6 +71,16 @@ class Board:
         self.board_view = board_view
         self.board_name = board_name
         self.reset()
+
+    def __str__(self):
+        ret = ""
+        for y in range(Board.BOARD_Y_MAX + 1):
+            for x in range(Board.BOARD_X_MAX + 1):
+                ret += str(self.dices[y][x]) + " "
+            ret += "\n"
+        return ret
+        #for dice in self.dices:
+
 
     @staticmethod
     def index_2_xy(index):
@@ -169,7 +182,7 @@ class Board:
                 if self.dices[y + y_delta][x + x_delta] is not attribute["EMPTY"]:
                     return True
         
-        return True
+        return False
 
     def _get_field_binary_representation(self, x, y):
         '''Although field can be represented as dice or requirement for dice, it is much more convenient for outside use
@@ -391,7 +404,12 @@ class Game:
             
             or -1 if no action is performed (skip move)
         '''
+        logging.debug(str(self.player.board) + "\n")
+        for dice in self.dices_on_table:
+            logging.debug(str(dice))
 
+        logging.debug("\n")
+        logging.debug(str(action_number))
         #print(self.round)
         if self.round == Game.NUMBER_OF_ROUNDS:
             self._game_finished = True
@@ -412,6 +430,7 @@ class Game:
         field_index = action_number % Board.NUMBER_OF_FIELDS
         x, y = Board.index_2_xy(field_index)
         
+        
         #illegal action
         if dice_number == len(self.dices_on_table):
             self.player.move_counter += 1
@@ -420,6 +439,7 @@ class Game:
             return self._action_out()
 
         dice = self.dices_on_table[dice_number]
+        logging.debug(str(dice) + str(x) + str(y))
 
         #if wrong action (illegal move) was given, just pretend as -1 action happened
         if not self.player.board._can_put_dice(x, y, dice):
