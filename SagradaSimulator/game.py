@@ -1,6 +1,7 @@
 import random
 import math
 import logging
+import matplotlib.pyplot as plt
 
 '''
 #     We have 13 possible states on board
@@ -28,7 +29,7 @@ attribute = {
     "EMPTY"  :  12,
 }
 
-num_to_color = {7 : "R", 8: "P", 9:"Y", 10:"B", 11:"G"}
+num_to_color = {0: "A", 1: "1", 2: "2", 3: "3", 4: "4", 5: "5", 6: "6", 7 : "R", 8: "P", 9:"Y", 10:"B", 11:"G"}
 
 class Dice:
     
@@ -76,7 +77,10 @@ class Board:
         ret = ""
         for y in range(Board.BOARD_Y_MAX + 1):
             for x in range(Board.BOARD_X_MAX + 1):
-                ret += str(self.dices[y][x]) + " "
+                if self.dices[y][x] == attribute["EMPTY"]:
+                    ret += str(num_to_color[self.board_view[y][x]]) + "  "
+                else:
+                    ret += str(self.dices[y][x]) + " "
             ret += "\n"
         return ret
         #for dice in self.dices:
@@ -216,15 +220,16 @@ class Board:
         Field can be represented as one hot, this requires vector of length 7 + 7 + 13. See _get_field_binary_representation for details.
         Returns vector for field with x, y position
         '''
-        ret = [0 for i in range(27)]
+        #ret = [0 for i in range(27)]
+        ret = [0, 0, 0]
         if self.dices[y][x] == attribute["EMPTY"]:
-            ret[0] = 1
-            ret[7] = 1
+            ret[0] = 0
+            ret[1] = 0
         else:
-            ret[self.dices[y][x].value] = 1
-            ret[self.dices[y][x].color + 1] = 1
+            ret[0] = self.dices[y][x].value / 6
+            ret[1] = (self.dices[y][x].color - 7) / 5
 
-        ret[self.board_view[y][x] + 14] = 1
+        ret[2] = self.board_view[y][x] / 13
         return ret
 
     def get_board_state_one_hot(self):
@@ -268,6 +273,7 @@ class Player:
 
     def reset(self):
         self.move_counter = 0
+        self.previous_points = -20
 
     def calculate_points(self):
         points = 0
@@ -278,8 +284,11 @@ class Player:
                     continue
 
                 if self.board.dices[y][x].color == self.main_mission_color:
-                    points += self.board.dices[y][x].value
-        return points
+                    points += 1
+        
+        ret = self.previous_points - points
+        self.previous_points = points
+        return ret
                 
 
 class Game:
@@ -312,9 +321,9 @@ class Game:
 
     def _get_dice_one_hot(self, dice):
         '''One hot vector of 12 values'''
-        vec = [0 for i in range(12)]
-        vec[dice.color] = 1
-        vec[dice.value] = 1
+        vec = [0, 0]
+        vec[0] = (dice.color - 7)/5
+        vec[1] = dice.value / 6
         return vec
 
     def get_dices_on_table_one_hot(self):
@@ -325,8 +334,7 @@ class Game:
             - bits [1-6] - digits 1 - 6
             - bits [7-11] - colors RED - GREEN
         '''
-        empty_dice = [0 for i in range(12)]
-        empty_dice[0] = 1
+        empty_dice = [0, 0]
 
         return_vector = []
         for i in range(4):
@@ -357,10 +365,10 @@ class Game:
         '''
         out_vec = []
         board_state = self.player.board.get_board_state_one_hot()
-        assert(len(board_state) == 540)
+        assert(len(board_state) == 60)
         
         dices_table = self.get_dices_on_table_one_hot()
-        assert(len(dices_table) == 48)
+        assert(len(dices_table) == 8)
 
         dices_to_pick = (Game.DICES_TO_PICK_BY_PLAYER - self.player.move_counter) / 2
 
@@ -368,8 +376,15 @@ class Game:
         out_vec.extend(dices_table)
         out_vec.append(dices_to_pick)
         
-        normalized_points = (self.player.calculate_points() + Board.NUMBER_OF_FIELDS) / 110.0
-        
+        normalized_points = (self.player.calculate_points() / 7)
+        # with open("log.out", "a") as f:
+        #     counter = 0
+        #     for el in out_vec:
+        #         f.write(str(round(el, 2)) + " ")
+        #         if counter %15 == 0:
+        #             f.write("\n")   
+        #         counter += 1
+        #     f.write("\n\n=================================================\n\n")
         return (
                 out_vec,
                 normalized_points,
@@ -477,9 +492,12 @@ if __name__ == "__main__":
             possible_actions = game.possible_actions()
             #print(possible_actions)
             state = game.step(possible_actions[random.randint(0, len(possible_actions)-1)]) #pick last possible action
+            #state = game.step(random.randint(-1, 79))
         points = state[-2]
         scores.append(points)
     
+    plt.hist(scores)
+    plt.show()
     print(sum(scores)/ len(scores))
             
     

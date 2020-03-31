@@ -8,19 +8,19 @@ import numpy as np
 import logging
 logging.getLogger().setLevel(logging.INFO)
 import copy
+import pickle
 
 
 gamma = 0.999
-epsilon = 1
+epsilon = 1.0
 epsilonMin = 0.1
 epsilonDecay = 0.999
-actionsCount = 80
+actionsCount = 81
 
 # Neural Network
 model = Sequential()
-model.add(Dense(600, input_dim=589, activation='relu'))
+model.add(Dense(300, input_dim=69, activation='relu'))
 model.add(Dense(800, activation='relu'))
-model.add(Dense(300, activation='relu'))
 model.add(Dense(actionsCount, activation='linear'))
 model.compile(loss='mse', optimizer=SGD(), metrics=['mae'])
 
@@ -29,9 +29,10 @@ memory = []
 batch_size = 64
 memoryMax = 50000
 
-def train(epochs):
+def train(epochs_start, epochs_end):
     global memory
     global model
+    #memory = pickle.load(open("memory.pkl", "rb"))
     board = Board([
         [attribute["THREE"], attribute["FOUR"], attribute["ONE"],    attribute["FIVE"],   attribute["ALL"]],
         [attribute["ALL"],   attribute["SIX"],  attribute["TWO"],    attribute["ALL"],    attribute["YELLOW"]],
@@ -43,21 +44,25 @@ def train(epochs):
     scores = []
     #f = open(str(time.time()) + "_" + "training.out", "w+")
     try:
-        pass
         #model.load_weights("weights.h5")
+        pass
     except:
         logging.warning("No weights for network found!")
 
-    for epoch in range(epochs):
+    for epoch in range(epochs_start, epochs_end):
         r = simulate(game)
         scores.append(r)
         logging.info("epoch: {} score: {} avg_score: {}".format(epoch, r, sum(scores[-20:])/(20.0)))
+        with open("out.log", "a+") as f:
+            f.write(str(r) + "\n")
         #f.write(str(r) + "\n")
-        #if epoch%1000 == 0:
-        #    model.save_weights("weights.h5")
+        if epoch%1000 == 0:
+            model.save_weights("weights_new.h5")
+            pickle.dump(memory, open("memory_new.pkl", "wb"))
+
 
     #f.close()
-    model.save_weights("weights.h5")
+    model.save_weights("weights_new.h5")
         
 def pick_best_possible(prediction, possible_actions):
     prediction = list(prediction[0])
@@ -76,6 +81,7 @@ def simulate(game):
     s, r, done = game.reset()
     s = np.array([s])
     
+    score = 0
     while done == False:
         possible_actions = game.possible_actions()
         #state = game.step(possible_actions[-1]) #pick last possible action
@@ -98,7 +104,7 @@ def simulate(game):
         # if r > 0.1:
         memory.append((copy.deepcopy(game), s, a, r, newS, done))
         s = newS
-
+        score += r
         if len(memory)==memoryMax:
             #memory.sort(key=lambda x:x[2], reverse=False)
             del memory[:5000]
@@ -109,20 +115,22 @@ def simulate(game):
         epsilon *= epsilonDecay
 
     # Replay memory
-    if len(memory) > batch_size:
-        minibatch = random.sample(memory, batch_size)
-        for game, state, action, reward, next_state, done in minibatch:
-            target = reward
-            if not done:
-                target = reward + gamma * pick_best_possible(model.predict(next_state), game.possible_actions())
+    if len(memory) > batch_size * 50:
+        batch = random.sample(memory, batch_size * 5)
+        for i in range(5):
+            minibatch = batch[i*batch_size:(i+1) * batch_size]
+            for game, state, action, reward, next_state, done in minibatch:
+                target = reward
+                if not done:
+                    target = reward + gamma * pick_best_possible(model.predict(next_state), game.possible_actions())
 
-            target_f = model.predict(state)[0]
-            target_f[action] = target
-            model.fit(state, target_f.reshape(-1, actionsCount), epochs=1, verbose=0)
+                target_f = model.predict(state)[0]
+                target_f[action] = target
+                model.fit(state, target_f.reshape(-1, actionsCount), epochs=1, verbose=0, use_multiprocessing=True, workers=12)
 
-    return r
+    return score
 
 
 if __name__ == "__main__":
-    train(10000)
+    train(0, 30000)
     
