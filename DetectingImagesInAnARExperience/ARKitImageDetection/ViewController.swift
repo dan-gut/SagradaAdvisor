@@ -36,7 +36,8 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         
         sceneView.delegate = self
         sceneView.session.delegate = self
-
+        sceneView.automaticallyUpdatesLighting = true
+        sceneView.autoenablesDefaultLighting = true
         // Hook up status view controller callback(s).
         statusViewController.restartExperienceHandler = { [unowned self] in
             self.restartExperience()
@@ -74,6 +75,9 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         
         let configuration = ARImageTrackingConfiguration()
         configuration.trackingImages = referenceImages
+        configuration.isLightEstimationEnabled = true
+        
+        
         session.run(configuration, options: [.resetTracking, .removeExistingAnchors])
 
         statusViewController.scheduleMessage("Look around to detect images", inSeconds: 7.5, messageType: .contentPlacement)
@@ -92,6 +96,12 @@ class ViewController: UIViewController, ARSCNViewDelegate {
             plane.firstMaterial?.diffuse.contents = UIColor.red.cgColor
             let planeNode = SCNNode(geometry: plane)
             planeNode.opacity = 0.8
+            
+            let dice = CardWithDice()
+            dice.position.x = -Float(referenceImage.physicalSize.width/2)
+            dice.position.z = -Float(referenceImage.physicalSize.height/2)
+
+            node.addChildNode(dice)
             
             /*
              `SCNPlane` is vertically oriented in its local coordinate space, but

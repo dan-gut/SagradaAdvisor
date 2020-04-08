@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2491B359243E3CF400BE1AF7 /* DiceNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2491B358243E3CF400BE1AF7 /* DiceNode.swift */; };
+		2491B35B243E444400BE1AF7 /* CardWithDice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2491B35A243E444400BE1AF7 /* CardWithDice.swift */; };
 		3929C48C1E89EC2C00E00B60 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3929C48B1E89EC2C00E00B60 /* AppDelegate.swift */; };
 		3929C48E1E89EC2C00E00B60 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3929C48D1E89EC2C00E00B60 /* ViewController.swift */; };
 		3929C4911E89EC2C00E00B60 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3929C48F1E89EC2C00E00B60 /* Main.storyboard */; };
@@ -18,6 +20,8 @@
 
 /* Begin PBXFileReference section */
 		11063F3B1EBE651B0033EE6D /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		2491B358243E3CF400BE1AF7 /* DiceNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiceNode.swift; sourceTree = "<group>"; };
+		2491B35A243E444400BE1AF7 /* CardWithDice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardWithDice.swift; sourceTree = "<group>"; };
 		3929C4881E89EC2C00E00B60 /* ARKitImageDetection.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ARKitImageDetection.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3929C48B1E89EC2C00E00B60 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		3929C48D1E89EC2C00E00B60 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -85,6 +89,8 @@
 			children = (
 				3929C48B1E89EC2C00E00B60 /* AppDelegate.swift */,
 				3929C48D1E89EC2C00E00B60 /* ViewController.swift */,
+				2491B358243E3CF400BE1AF7 /* DiceNode.swift */,
+				2491B35A243E444400BE1AF7 /* CardWithDice.swift */,
 				C8C12A701F29277B00B011FE /* ViewController+ARSessionDelegate.swift */,
 				1488324B1EFC3EBF0043E0AB /* Additional View Controllers */,
 				1488324C1EFC3ED00043E0AB /* Resources */,
@@ -183,9 +189,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2491B359243E3CF400BE1AF7 /* DiceNode.swift in Sources */,
 				3929C48E1E89EC2C00E00B60 /* ViewController.swift in Sources */,
 				C41366B91EB80DD400EC054A /* StatusViewController.swift in Sources */,
 				C8C12A711F29277B00B011FE /* ViewController+ARSessionDelegate.swift in Sources */,
+				2491B35B243E444400BE1AF7 /* CardWithDice.swift in Sources */,
 				3929C48C1E89EC2C00E00B60 /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

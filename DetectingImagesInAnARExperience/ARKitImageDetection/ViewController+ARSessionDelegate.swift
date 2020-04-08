@@ -91,5 +91,21 @@ extension ViewController: ARSessionDelegate {
             self.isRestartAvailable = true
         }
     }
+    func renderer(_ renderer: SCNSceneRenderer, updateAtTime time: TimeInterval) {
+        //1. Get The Current Light Estimate
+        guard let lightEstimate = self.sceneView.session.currentFrame?.lightEstimate else { return }
+        
+        //2. Get The Ambient Intensity & Colour Temperatures
+        let ambientLightEstimate = lightEstimate.ambientIntensity
+        
+        let ambientColourTemperature = lightEstimate.ambientColorTemperature
+        
+        print(
+            """
+            Current Light Estimate = \(ambientLightEstimate)
+            Current Ambient Light Colour Temperature Estimate = \(ambientColourTemperature)
+            """)
+        
+    }
     
 }
