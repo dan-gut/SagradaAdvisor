@@ -2,34 +2,8 @@ import random
 import math
 import logging
 import matplotlib.pyplot as plt
-
-'''
-#     We have 13 possible states on board
-#     0: everything can be placed there (grey)
-#     1 - 6: like numbers on dice
-#     colors: RED, PURPLE, YELLOW, RED, BLUE, GREEN
-#     empty: 12
-#     '''
-
-attribute = {
-    "ALL"    :   0,
-    "ONE"    :   1,
-    "TWO"    :   2,
-    "THREE"  :   3,
-    "FOUR"   :   4,
-    "FIVE"   :   5,
-    "SIX"    :   6,
-
-    "RED"    :   7, #1
-    "PURPLE" :   8, #2
-    "YELLOW" :   9, #3
-    "BLUE"   :  10, #4
-    "GREEN"  :  11, #5
-
-    "EMPTY"  :  12,
-}
-
-num_to_color = {0: "A", 1: "1", 2: "2", 3: "3", 4: "4", 5: "5", 6: "6", 7 : "R", 8: "P", 9:"Y", 10:"B", 11:"G"}
+from boards import ALL_BOARDS, attribute, num_to_color
+import numpy as np
 
 class Dice:
     
@@ -97,7 +71,7 @@ class Board:
 
     @staticmethod
     def xy_2_index(x, y):
-        return y * (Board.BOARD_X_MAX + 1) + x
+        return y * (Board.BOARD_X_MAX + 1) + x + 1
 
     def reset(self):
         self.dices = [
@@ -186,7 +160,7 @@ class Board:
                 if self.dices[y + y_delta][x + x_delta] is not attribute["EMPTY"]:
                     return True
         
-        return False
+        return True #TODO
 
     def _get_field_binary_representation(self, x, y):
         '''Although field can be represented as dice or requirement for dice, it is much more convenient for outside use
@@ -214,7 +188,7 @@ class Board:
                 ret.append(self._get_field_binary_representation(x, y))
         return ret
 
-    def _get_field_one_hot_representation(self, x, y):
+    def _get_field_number_representation(self, x, y):
         pass
         '''
         Field can be represented as one hot, this requires vector of length 7 + 7 + 13. See _get_field_binary_representation for details.
@@ -232,6 +206,30 @@ class Board:
         ret[2] = self.board_view[y][x] / 13
         return ret
 
+    def get_board_state_number_representation(self):
+        ret = []
+        for y in range(Board.BOARD_Y_MAX + 1):
+            for x in range(Board.BOARD_X_MAX + 1):
+                ret.extend(self._get_field_number_representation(x, y))
+        return ret
+
+    def _get_field_one_hot_representation(self, x, y):
+        pass
+        '''
+        Field can be represented as one hot, this requires vector of length 7 + 7 + 13. See _get_field_binary_representation for details.
+        Returns vector for field with x, y position
+        '''
+        ret = [0 for i in range(27)]
+        if self.dices[y][x] == attribute["EMPTY"]:
+            ret[0] = 1
+            ret[7] = 1
+        else:
+            ret[self.dices[y][x].value] = 1
+            ret[self.dices[y][x].color + 1] = 1
+
+        ret[self.board_view[y][x] + 14] = 1
+        return ret
+    
     def get_board_state_one_hot(self):
         ret = []
         for y in range(Board.BOARD_Y_MAX + 1):
@@ -239,8 +237,17 @@ class Board:
                 ret.extend(self._get_field_one_hot_representation(x, y))
         return ret
 
+
+    def get_board_state_for_conv2d(self):
+        ret = []
+        for y in range(Board.BOARD_Y_MAX + 1):
+            for x in range(Board.BOARD_X_MAX + 1):
+                ret.append(np.array(self._get_field_number_representation(x, y)))
+        return ret
+
+
     def get_possible_actions(self, dices):
-        actions = [-1] #it is always possible to do nothing
+        actions = [0] #it is always possible to do nothing
         for dice_index, dice in enumerate(dices):
             for x in range(Board.BOARD_X_MAX + 1):
                 for y in range(Board.BOARD_Y_MAX + 1):
@@ -256,12 +263,17 @@ class Player:
     Player has Purple color
     On his board dice with "6" on it will give him 6 points to final score, dice with "2" -> 2 points
     '''
-    def __init__(self, name, board, main_mission_color):
+    def __init__(self, name, board=None, main_mission_color=None):
         self.name = name
-        self.board = board
-        self.main_mission_color = main_mission_color
-        self.move_counter = 0
-        self.check_params()
+        self.reset()
+        self.main_mission_color = None
+        self.board = None
+        if board is not None:
+            self.board = board
+        if main_mission_color is not None:
+            self.main_mission_color = main_mission_color
+        self.reset()
+        
 
     def check_params(self):
         if self.main_mission_color not in [attribute['RED'], \
@@ -273,22 +285,26 @@ class Player:
 
     def reset(self):
         self.move_counter = 0
-        self.previous_points = -20
+        self.round_counter = 1
+        self.main_mission_color = random.randint(7, 11)
+        key = random.choice(list(ALL_BOARDS.keys())) #list(ALL_BOARDS.keys())[0]#
+        self.board = Board(ALL_BOARDS[key], key)
+        self.check_params()
 
     def calculate_points(self):
         points = 0
+        fill_ratio = 20
+        #print(str(self.board))
         for x in range(Board.BOARD_X_MAX + 1):
             for y in range(Board.BOARD_Y_MAX + 1):
                 if self.board.dices[y][x] == attribute["EMPTY"]:
-                    points -= 1
+                    points -= 1.0
+                    fill_ratio -= 1
                     continue
 
                 if self.board.dices[y][x].color == self.main_mission_color:
-                    points += 1
-        
-        ret = self.previous_points - points
-        self.previous_points = points
-        return ret
+                    points += (self.board.dices[y][x].value)
+        return points, fill_ratio/20
                 
 
 class Game:
@@ -301,7 +317,8 @@ class Game:
         self._dices_to_draw_each_round = 4 # one player
         
     def prepare_game(self):
-        self.round = 1
+        self.player.round_counter = 1
+        self.player.move_counter = 0
         self._dices_to_draw_from = []
         self.dices_on_table = []
         self._game_finished = False
@@ -309,7 +326,8 @@ class Game:
         for color in range(7, 12):
             for d in range(15):
                 self._dices_to_draw_from.append(Dice.get_random_dice(color))
-        
+        random.shuffle(self._dices_to_draw_from)
+
     def toss_random_dices(self, count):
         # self.dices_on_table.append(Dice(attribute["RED"], attribute['SIX']))
         # self.dices_on_table.append(Dice(attribute["RED"], attribute['FIVE']))
@@ -319,12 +337,49 @@ class Game:
             random_index = random.randint(0, len(self._dices_to_draw_from) - 1)
             self.dices_on_table.append(self._dices_to_draw_from.pop(random_index))
 
-    def _get_dice_one_hot(self, dice):
+    def _get_dice_number_representation(self, dice):
         '''One hot vector of 12 values'''
         vec = [0, 0]
         vec[0] = (dice.color - 7)/5
         vec[1] = dice.value / 6
         return vec
+
+    def _get_dice_one_hot(self, dice):
+        '''One hot vector of 12 values'''
+        vec = [0 for i in range(11)]
+        vec[dice.color - 1] = 1
+        vec[dice.value - 1] = 1
+        return vec
+
+    def get_dices_on_table_numbers_representation(self):
+        '''this will return one hot for each dice on table, to keep one_hot vector the same lenght
+            no matter how many dices on board
+            return format:
+            - empty -> one on first position
+            - bits [1-6] - digits 1 - 6
+            - bits [7-11] - colors RED - GREEN
+        '''
+        empty_dice = [0, 0]
+
+        return_vector = []
+        for i in range(4):
+            if i >= len(self.dices_on_table):
+                return_vector.extend(empty_dice)
+            else:
+                return_vector.extend(self._get_dice_number_representation(self.dices_on_table[i]))
+        return return_vector
+
+    def get_dices_on_table_conv2D(self):
+        empty_dice = [0, 0]
+
+        return_vector = []
+        for i in range(4):
+            if i >= len(self.dices_on_table):
+                return_vector.append(empty_dice)
+            else:
+                return_vector.append(self._get_dice_number_representation(self.dices_on_table[i]))
+        return return_vector
+
 
     def get_dices_on_table_one_hot(self):
         '''this will return one hot for each dice on table, to keep one_hot vector the same lenght
@@ -334,7 +389,8 @@ class Game:
             - bits [1-6] - digits 1 - 6
             - bits [7-11] - colors RED - GREEN
         '''
-        empty_dice = [0, 0]
+        empty_dice = [0 for i in range(11)]
+        empty_dice[0] = 1
 
         return_vector = []
         for i in range(4):
@@ -363,47 +419,39 @@ class Game:
         In practice this score is not reachable since it means that player during game  got 
         15 out of 40 dices in his color and also all of them were "6".
         '''
+
         out_vec = []
-        board_state = self.player.board.get_board_state_one_hot()
-        assert(len(board_state) == 60)
-        
-        dices_table = self.get_dices_on_table_one_hot()
-        assert(len(dices_table) == 8)
 
-        dices_to_pick = (Game.DICES_TO_PICK_BY_PLAYER - self.player.move_counter) / 2
-
-        out_vec.extend(board_state)
-        out_vec.extend(dices_table)
-        out_vec.append(dices_to_pick)
+        out_vec.append(np.array(self.player.board.get_board_state_for_conv2d()))
+        out_vec.append(np.array(self.get_dices_on_table_numbers_representation()))
+        mission_color = (self.player.main_mission_color - 7)/5
+        out_vec.append(np.array(mission_color))
         
-        normalized_points = (self.player.calculate_points() / 7)
-        # with open("log.out", "a") as f:
-        #     counter = 0
-        #     for el in out_vec:
-        #         f.write(str(round(el, 2)) + " ")
-        #         if counter %15 == 0:
-        #             f.write("\n")   
-        #         counter += 1
-        #     f.write("\n\n=================================================\n\n")
-        return (
-                out_vec,
-                normalized_points,
-                self._game_finished
-                )
+        info = {"None": 0}
+        ret = np.array(
+               [out_vec,
+               self.reward,
+               self._game_finished,
+               info
+               ])
+
+        #print(ret)
+        return ret
 
     def reset(self):
+        self.reward = 0
         self.prepare_game()
         self.player.board.reset()
         self.player.reset()
-        self.toss_random_dices(self._dices_to_draw_each_round)
-        return self._action_out()
+        self.toss_random_dices(4)
+        return self._action_out()[0]
 
     def possible_actions(self):
         return self.player.board.get_possible_actions(self.dices_on_table)
 
     def next_round(self):
         self.dices_on_table = []
-        self.round += 1
+        self.player.round_counter += 1
         self.player.move_counter %= 2
         self.toss_random_dices(self._dices_to_draw_each_round)
 
@@ -414,40 +462,43 @@ class Game:
             [0-19] -> dice 0 to field [0-19]
             [20-39] -> dice 1 to field [0-19]
             ...
-            -1 - No action
+            0 - No action
             fields are indexed first in x axis then in y axis
             
-            or -1 if no action is performed (skip move)
+            or 0 if no action is performed (skip move)
         '''
+        # for dice in self.dices_on_table:
+        #     print(str(dice), end=" ")
+        # print()
+        self.reward = -1
         logging.debug(str(self.player.board) + "\n")
         for dice in self.dices_on_table:
             logging.debug(str(dice))
 
         logging.debug("\n")
         logging.debug(str(action_number))
-        #print(self.round)
-        if self.round == Game.NUMBER_OF_ROUNDS:
+        if self.player.round_counter == Game.NUMBER_OF_ROUNDS + 1:
             self._game_finished = True
+            # print(str(self.player.board), num_to_color[self.player.main_mission_color], self.player.calculate_points())
+
             return self._action_out()
         
-
+        
         #no action
-        if action_number == -1:
+        if action_number == 0:
             self.player.move_counter += 1
             if self.player.move_counter == Game.DICES_TO_PICK_BY_PLAYER:
                 self.next_round()
             return self._action_out()
 
         
-        dice_number = math.floor(action_number / Board.NUMBER_OF_FIELDS)
+        dice_number = math.floor((action_number - 1) / (Board.NUMBER_OF_FIELDS))
         logging.debug("step: dice_number: {}, action_number: {}".format(dice_number, action_number))
-        #print(dice_number)
-        field_index = action_number % Board.NUMBER_OF_FIELDS
+        field_index = (action_number - 1) % Board.NUMBER_OF_FIELDS
         x, y = Board.index_2_xy(field_index)
         
-        
         #illegal action
-        if dice_number == len(self.dices_on_table):
+        if dice_number >= len(self.dices_on_table):
             self.player.move_counter += 1
             if self.player.move_counter == Game.DICES_TO_PICK_BY_PLAYER:
                 self.next_round()
@@ -459,14 +510,20 @@ class Game:
         #if wrong action (illegal move) was given, just pretend as -1 action happened
         if not self.player.board._can_put_dice(x, y, dice):
             self.player.move_counter += 1
+            # self.player.round_counter += 1
             if self.player.move_counter == Game.DICES_TO_PICK_BY_PLAYER:
-                self.next_round()
+               self.next_round()
             return self._action_out()
         
         #proper action
         #print(self.dices_on_table)
         self.player.board.put_dice(x, y, dice)
+        if dice.color == self.player.main_mission_color:
+            self.reward = 1 #dice.value/7 + 1/7
+        else:
+            self.reward = 1
         self.player.move_counter += 1
+        # self.player.round_counter += 1
         self.dices_on_table.remove(dice)
         if self.player.move_counter == Game.DICES_TO_PICK_BY_PLAYER:
             self.next_round()
@@ -484,17 +541,18 @@ if __name__ == "__main__":
 
     game = Game(Player("Pawel", board, attribute["RED"]))
     scores = []
-    for i in range(1000):
+    for i in range(100):
         state = game.reset()
         game_over = state[-1]
+        #points = 0
         while game_over == False:
-            game_over = state[-1]
+            game_over = state[-2]
             possible_actions = game.possible_actions()
             #print(possible_actions)
-            state = game.step(possible_actions[random.randint(0, len(possible_actions)-1)]) #pick last possible action
-            #state = game.step(random.randint(-1, 79))
-        points = state[-2]
-        scores.append(points)
+            # state = game.step(possible_actions[random.randint(0, len(possible_actions)-1)]) #pick last possible action
+            state = game.step(random.randint(0, 801))
+            # points += state[-3]
+        scores.append(game.player.calculate_points()[0])
     
     plt.hist(scores)
     plt.show()
