@@ -7,8 +7,8 @@ data = [i.split(" ") for i in data]
 score = [float(d[0]) for d in data]
 loss = [float(d[1]) for d in data]
 avg = 100
-arg_min = -3
-arg_max = 5
+arg_min = 13
+arg_max = 20
 y = [sum(score[i-avg:i])/avg for i, _ in enumerate(score[avg:])]
 ax = plt.subplot(5, 1, 1)
 ax.set_ylim([arg_min, arg_max])

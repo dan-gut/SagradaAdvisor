@@ -160,7 +160,7 @@ class Board:
                 if self.dices[y + y_delta][x + x_delta] is not attribute["EMPTY"]:
                     return True
         
-        return True #TODO
+        return False
 
     def _get_field_binary_representation(self, x, y):
         '''Although field can be represented as dice or requirement for dice, it is much more convenient for outside use
@@ -289,6 +289,7 @@ class Player:
         self.main_mission_color = random.randint(7, 11)
         key = random.choice(list(ALL_BOARDS.keys())) #list(ALL_BOARDS.keys())[0]#
         self.board = Board(ALL_BOARDS[key], key)
+        # self.board = Board(ALL_BOARDS['ALL'], "ALL")
         self.check_params()
 
     def calculate_points(self):
@@ -301,6 +302,8 @@ class Player:
                     points -= 1.0
                     fill_ratio -= 1
                     continue
+                else:
+                    points += 1
 
                 if self.board.dices[y][x].color == self.main_mission_color:
                     points += (self.board.dices[y][x].value)
@@ -470,6 +473,8 @@ class Game:
         # for dice in self.dices_on_table:
         #     print(str(dice), end=" ")
         # print()
+        # action_number, dice_number = action
+
         self.reward = -1
         logging.debug(str(self.player.board) + "\n")
         for dice in self.dices_on_table:
@@ -483,7 +488,6 @@ class Game:
 
             return self._action_out()
         
-        
         #no action
         if action_number == 0:
             self.player.move_counter += 1
@@ -495,6 +499,7 @@ class Game:
         dice_number = math.floor((action_number - 1) / (Board.NUMBER_OF_FIELDS))
         logging.debug("step: dice_number: {}, action_number: {}".format(dice_number, action_number))
         field_index = (action_number - 1) % Board.NUMBER_OF_FIELDS
+        # field_index = action_number
         x, y = Board.index_2_xy(field_index)
         
         #illegal action
@@ -519,7 +524,7 @@ class Game:
         #print(self.dices_on_table)
         self.player.board.put_dice(x, y, dice)
         if dice.color == self.player.main_mission_color:
-            self.reward = 1 #dice.value/7 + 1/7
+            self.reward = dice.value + 1
         else:
             self.reward = 1
         self.player.move_counter += 1

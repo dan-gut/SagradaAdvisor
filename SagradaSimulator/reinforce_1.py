@@ -1,6 +1,6 @@
 #from comet_ml import Experiment
 from keras.models import Sequential, Model
-from keras.layers import Dense, Activation, Flatten, Reshape, LSTM, Input, Conv2D, Conv1D, MaxPooling2D, concatenate, SimpleRNN
+from keras.layers import Dense, Activation, Flatten, Reshape, LSTM, Input, Conv2D, Conv1D, MaxPooling2D, concatenate, SimpleRNN, Dropout
 from keras.optimizers import SGD, Adadelta, Adam
 from keras.callbacks import EarlyStopping
 from game import *
@@ -13,7 +13,7 @@ import copy
 import pickle
 
 
-gamma = 0.99
+gamma = 0.9999
 epsilon = 1.0
 epsilonMin = 0.01
 epsilonDecay = 0.999
@@ -29,21 +29,24 @@ x = Conv2D(32, (3,3), strides=(1, 1), padding="same", activation="relu")(x)
 x = Flatten()(x)
 
 dices_input = Input(shape=(1,8), name="dices_view")
-y = Dense(32, activation="relu")(dices_input)
-y = Dense(32, activation="relu")(y)
-y = Dense(32, activation="relu")(y)
+y = Dense(128, activation="relu")(dices_input)
+y = Dropout(0.3)(y)
+y = Dense(128, activation="relu")(y)
+y = Dropout(0.3)(y)
+y = Dense(128, activation="relu")(y)
+y = Dropout(0.3)(y)
 y = Flatten()(y)
 part1_out = concatenate([x, y])
 y = Dense(128, activation="relu")(part1_out)
-
+y = Dropout(0.3)(y)
 
 mission_input = Input(shape=(1,1), name="mission_input")
 mission = Flatten()(mission_input)
 part2_out = concatenate([y, mission])
 
 z = Dense(128, activation="relu")(part2_out)
-
-main_output = Dense(actionsCount, activation="linear", name="out")(z)
+z = Dropout(0.3)(z)
+main_output = Dense(actionsCount, activation="softmax", name="out")(z)
 
 model = Model(inputs=[board_input, dices_input, mission_input], outputs=main_output)
 model.compile(loss='mae', optimizer=SGD(lr=1e-4), metrics=['mae'])
@@ -144,6 +147,11 @@ def simulate(game):
             #print("prediction:", a)
 
         
+        if a not in possible_actions:
+            # newS = [s]
+            # print("{}, {}, {}, {}".format(a, rnd, -1, game.player.round_counter))
+            memory.append(([s1, s2, s3], a, -1, [s1, s2, s3], done))
+            continue
         c = 0
         for dice in game.dices_on_table:
             if dice.color == game.player.main_mission_color and game.player.move_counter == 0 and c < 2:
@@ -152,7 +160,7 @@ def simulate(game):
             
         newS, r, done, _ = game.step(a)
         #print(str(game.player.board), r, game.player.round_counter)
-        print("{}, {}, {}, {}".format(a, rnd, r, game.player.round_counter))
+        # print("{}, {}, {}, {}".format(a, rnd, r, game.player.round_counter))
         
         new_s1 = newS[0].reshape(1, 5, 4, 3)
         new_s2 = newS[1].reshape(1, 1, -1)
@@ -168,6 +176,17 @@ def simulate(game):
         if it % 4 == 0:
             replay_memory()
         if len(memory)>=memoryMax:
+            sanitized_memory = []
+            actions = [a[1] for a in memory]
+            c = Counter(actions)
+            max_actions = min(c.values())
+            hist = defaultdict(int)
+
+            for row in memory:
+                if hist[row[1]] < max_actions:
+                    sanitized_memory.append(row)
+                    hist[row[1]] += 1
+            memory = sanitized_memory[:]
             memory.sort(key=lambda x: x[2], reverse=True)
             memory = memory[:45000]
 
@@ -175,6 +194,8 @@ def simulate(game):
             epsilon *= epsilonDecay
     print(str(game.player.board), game.player.main_mission_color, round(score, 0), game.player.calculate_points(), theoretical_max_score)
     return round(score, 2), sum([abs(l) for l in loss])
+
+from collections import Counter, defaultdict
 
 def replay_memory():
     global loss
@@ -184,14 +205,28 @@ def replay_memory():
         #for i in range(5):
         #    minibatch = batch[i*batch_size:(i+1) * batch_size]
 
-        buffer = sorted(memory, key=lambda replay: replay[2], reverse=True)
+        #clean and sanitize buffer
+        sanitized_memory = []
+        actions = [a[1] for a in memory]
+        c = Counter(actions)
+        max_actions = min(c.values())
+        hist = defaultdict(int)
+
+        for row in memory:
+            if hist[row[1]] < max_actions:
+                sanitized_memory.append(row)
+                hist[row[1]] += 1
+        
+
+
+        buffer = sorted(sanitized_memory, key=lambda replay: replay[2], reverse=True)
         p = np.array([0.99 ** i for i in range(len(buffer))])
         #print(p)
         p = p / sum(p)
         sample_idxs = np.random.choice(np.arange(len(buffer)),size=batch_size, p=p)
         sample_output = [buffer[idx] for idx in sample_idxs]
         minibatch = np.reshape(sample_output,(batch_size,-1))
-        #minibatch = random.sample(memory, batch_size)
+        # minibatch = random.sample(memory, batch_size)
         for state, action, reward, next_state, done in minibatch:
             target = 0 
             # print(next_state)
