@@ -5,6 +5,7 @@ import logging
 
 
 log = logging.getLogger(__name__)
+logging.basicConfig(level="INFO")
 
 
 class MCTS:
@@ -77,15 +78,20 @@ class MCTS:
             else:
                 u = self.C * self.Ps[s][a] * math.sqrt(self.Ns[s])
 
-
             if u > cur_best:
                 cur_best = u
                 best_act = a
 
+        # making all values positive
+        min_val = min(self.Ps[s], key=self.Ps[s].get)
+        if min_val < 0:
+            for (key, val) in self.Ps[s].items():
+                self.Ps[s][key] = val - min_val
+
+        # normalization
         sum_ps = 1.0 / sum(self.Ps[s].values())
         for (key, val) in self.Ps[s].items():
             self.Ps[s][key] = val * sum_ps
-
 
         a = best_act
 
@@ -138,8 +144,8 @@ if __name__ == "__main__":
 
     scores = []
 
-    for i in range(10):
-        for j in range(10):
+    for i in range(1000):
+        for j in range(1000):
             s, r, game_finished = game.reset()
             mcts.search(game)
 
@@ -147,8 +153,9 @@ if __name__ == "__main__":
         while not game_finished:
             s, r, game_finished = game.step(mcts.best_choice(game))
 
-        scores.append(r)
+        log.info(f"Epoch: {i}, score {r}")
 
-    print(scores)
+        with open("results.txt", 'a+') as results_file:
+            results_file.write(str(r) + '\n')
 
     mcts.save_data("mcts_data.dat")

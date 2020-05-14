@@ -341,11 +341,10 @@ class Game:
             - bool if game is finished (True == finished)
         """
         out_vec = []
-        board_state = self.player.board.get_board_state_one_hot()
-        assert(len(board_state) == 540)
+
+        board_state = int("".join(str(x) for x in self.player.board.get_board_state_one_hot()), 2)
         
-        dices_table = self.get_dices_on_table_one_hot()
-        assert(len(dices_table) == 48)
+        dices_table = int("".join(str(x) for x in self.get_dices_on_table_one_hot()), 2)
 
         dices_to_pick = (Game.DICES_TO_PICK_BY_PLAYER - self.player.move_counter)
 
@@ -353,8 +352,8 @@ class Game:
 
         main_mission_color = self.get_main_mission_color()
 
-        out_vec.extend(board_state)
-        out_vec.extend(dices_table)
+        out_vec.append(board_state)
+        out_vec.append(dices_table)
         out_vec.append(dices_to_pick)
         out_vec.append(round_no)
         out_vec.append(main_mission_color)
@@ -461,10 +460,10 @@ if __name__ == "__main__":
         state = game.reset()
         game_over = state[-1]
         while not game_over:
-            game_over = state[-1]
             possible_actions = game.possible_actions()
             # print(possible_actions)
             state = game.step(possible_actions[random.randint(0, len(possible_actions)-1)])  # pick last possible action
+            game_over = state[-1]
         points = state[-2]
         scores.append(points)
     
