@@ -1,0 +1,7 @@
+version: "3.0"
+
+services:
+        web_server:
+                image: sagrada_flask
+                ports:
+                        - "81:5000"

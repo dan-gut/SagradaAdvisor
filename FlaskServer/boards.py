@@ -28,7 +28,7 @@ num_to_color = {0: "A", 1: "1", 2: "2", 3: "3", 4: "4", 5: "5", 6: "6", 7 : "R",
 
 
 ALL_BOARDS = { 
-    "Zywy ogien": 
+    "zywy_ogien": 
     [
         [attribute["THREE"], attribute["FOUR"], attribute["ONE"],    attribute["FIVE"],   attribute["ALL"]],
         [attribute["ALL"],   attribute["SIX"],  attribute["TWO"],    attribute["ALL"],    attribute["YELLOW"]],
@@ -36,7 +36,7 @@ ALL_BOARDS = {
         [attribute["FIVE"],  attribute["ALL"],  attribute["YELLOW"], attribute["RED"],    attribute["SIX"]]
     ],
     
-    "Gwiezdny pyl":
+    "gwiezdny_pyl":
     [
         [attribute["ALL"],   attribute["ONE"],   attribute["GREEN"], attribute["PURPLE"], attribute["FOUR"]],
         [attribute["SIX"],   attribute["PURPLE"],attribute["TWO"],   attribute["FIVE"],   attribute["GREEN"]],
@@ -44,7 +44,7 @@ ALL_BOARDS = {
         [attribute["ALL"],   attribute["ALL"],   attribute["ALL"],   attribute["ALL"],    attribute["ALL"]]
     ],
 
-    "Woda i Ogien":
+    "woda_i_ogien":
     [
         [attribute["ALL"],   attribute["BLUE"],  attribute["RED"],   attribute["ALL"],    attribute["ALL"]],
         [attribute["ALL"],   attribute["FOUR"],  attribute["FIVE"],  attribute["ALL"],    attribute["BLUE"]],
@@ -52,7 +52,7 @@ ALL_BOARDS = {
         [attribute["SIX"],   attribute["RED"],   attribute["THREE"], attribute["ONE"],    attribute["ALL"]]
     ],
     
-    "Dwa Swiaty": 
+    "dwa_swiaty": 
     [
         [attribute["ALL"],   attribute["ALL"],   attribute["ALL"],   attribute["RED"],    attribute["FIVE"]],
         [attribute["ALL"],   attribute["ALL"],   attribute["PURPLE"],attribute["FOUR"],   attribute["BLUE"]],
