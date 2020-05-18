@@ -3,7 +3,8 @@ from boards import ALL_BOARDS, attribute
 from game import Game, Dice, Player, Board
 import greedy as advisor
 import math
-import sys
+import logging
+
 
 app = Flask(__name__)
 
@@ -49,16 +50,16 @@ def index():
     elif game_id and dices:
         game_id = int(game_id)
         dices_str = dices.split(" ")
-        print(dices_str, file=sys.stderr)
+        logging.debug(dices_str)
         game = games[game_id]
         game.dices_on_table = []
         for dice_str in dices_str:
             temp_dice = Dice(0, 0)
             if temp_dice.initialize_with_string(dice_str) != 0:
                 game.dices_on_table.append(temp_dice)
-        print(game.dices_on_table, file=sys.stderr)
-        print(str(game.player.board), file=sys.stderr)
 
+        logging.debug(game.dices_on_table)
+        logging.debug(str(game.player.board))
 
         action1 = advisor.pick_best_action(game)
         game.step(action1)
@@ -66,8 +67,8 @@ def index():
         action2 = advisor.pick_best_action(game)
         game.step(action2)
                 
-        print(game.dices_on_table, file=sys.stderr)
-        print(str(game.player.board), file=sys.stderr)
+        logging.debug(game.dices_on_table)
+        logging.debug(str(game.player.board))
         
         ret = ""
 
@@ -80,8 +81,6 @@ def index():
 
         ret += "-"
 
-        
-
         if action2 == 0:
             ret += "0+0"
         else:
@@ -89,8 +88,6 @@ def index():
             if dice_no2 >= dice_no1:
                 dice_no2 += 1
             ret += dices_str[dice_no2] + "+" + str(field_no2)
-
-
 
         return ret
 

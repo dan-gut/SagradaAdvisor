@@ -6,11 +6,10 @@ import copy
 def pick_best_action(game):
     maxi = [-1, 0]
     possible_actions = game.possible_actions()
-    # print(possible_actions)
     for i in range(len(possible_actions)):
         game_cp = copy.deepcopy(game)
         _, r, _, _ = game_cp.step(possible_actions[i])
-        print(possible_actions[i], r, maxi[0], maxi[1])
+        logging.debug("Pick best action: ", possible_actions[i], r, maxi[0], maxi[1])
         if r > maxi[0]:
             maxi[0] = r
             maxi[1] = possible_actions[i]
