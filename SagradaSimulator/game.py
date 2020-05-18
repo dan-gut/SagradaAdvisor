@@ -29,6 +29,8 @@ attribute = {
 }
 
 
+num_to_color = {0: "A", 1: "1", 2: "2", 3: "3", 4: "4", 5: "5", 6: "6", 7 : "R", 8: "P", 9:"Y", 10:"B", 11:"G"}
+
 class Dice:
     def __init__(self, color, value):
         self.color = color  # 7 - 11
@@ -39,7 +41,7 @@ class Dice:
         return Dice(color, random.randint(1, 6))
 
     def __str__(self):
-        return "Dice: " + "C: " + str(self.color) + " V: " + str(self.value)
+        return str(num_to_color[self.color]) + str(self.value)
         
 
 class Board:
@@ -69,6 +71,17 @@ class Board:
         self.board_view = board_view
         self.board_name = board_name
         self.reset()
+
+    def __str__(self):
+        ret = ""
+        for y in range(Board.BOARD_Y_MAX + 1):
+            for x in range(Board.BOARD_X_MAX + 1):
+                if self.dices[y][x] == attribute["EMPTY"]:
+                    ret += str(num_to_color[self.board_view[y][x]]) + "  "
+                else:
+                    ret += str(self.dices[y][x]) + " "
+            ret += "\n"
+        return ret
 
     @staticmethod
     def index_2_xy(index):
@@ -169,7 +182,7 @@ class Board:
                 if self.dices[y + y_delta][x + x_delta] is not attribute["EMPTY"]:
                     return True
         
-        return True
+        return False
 
     def _get_field_binary_representation(self, x, y):
         """
@@ -297,8 +310,8 @@ class Game:
         # self.dices_on_table.append(Dice(attribute["BLUE"], attribute['ONE']))
         # self.dices_on_table.append(Dice(attribute["GREEN"], attribute['FOUR']))
         for _ in range(count):
-            random_index = random.randint(0, len(self._dices_to_draw_from) - 1)
-            self.dices_on_table.append(self._dices_to_draw_from.pop(random_index))
+           random_index = random.randint(0, len(self._dices_to_draw_from) - 1)
+           self.dices_on_table.append(self._dices_to_draw_from.pop(random_index))
 
     def _get_dice_one_hot(self, dice):
         """One hot vector of 12 values"""

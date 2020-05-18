@@ -58,14 +58,13 @@ class MCTS:
 
     def search(self, game):
         s, r, game_finished = game.get_current_state()
-
         if s not in self.Ps:
             # leaf node
             self.Ps[s] = {a: 1/len(game.possible_actions()) for a in game.possible_actions()}
 
             self.As[s] = game.possible_actions()
             self.Ns[s] = 0
-            return self._rollout(game)
+            return -self._rollout(game)
 
         cur_best = -float('inf')
         best_act = -1
@@ -81,13 +80,14 @@ class MCTS:
             if u > cur_best:
                 cur_best = u
                 best_act = a
-
         # making all values positive
-        min_val = min(self.Ps[s], key=self.Ps[s].get)
+
+        min_val = min(self.Ps[s].values())#, key=self.Ps[s].values)
+        #print(min_val, self.Ps[s].values())
         if min_val < 0:
             for (key, val) in self.Ps[s].items():
-                self.Ps[s][key] = val - min_val
-
+                self.Ps[s][key] = val - min_val + 1e-5
+        #print(min_val, self.Ps[s].values())
         # normalization
         sum_ps = 1.0 / sum(self.Ps[s].values())
         for (key, val) in self.Ps[s].items():
@@ -95,7 +95,7 @@ class MCTS:
 
         a = best_act
 
-        s, r, game_finished = game.step(a)
+        _, r, game_finished = game.step(a)
 
         if game_finished:
             v = r
@@ -110,21 +110,23 @@ class MCTS:
             self.Qsa[(s, a)] = v
             self.Nsa[(s, a)] = 1
 
+        #print("tutaj2: ", s, s in self.Ps, s in self.Ns)
         self.Ns[s] += 1
-        return v
+        return -v
 
     def best_choice(self, game):
         s, r, game_finished = game.get_current_state()
-
+        
         if s in self.Ps:
-            return max(self.Ps[s], key=self.Ps[s].get)
+            return max(self.Ps[s], key=self.Ps[s].get), True
         else:
             possible_actions = game.possible_actions()
-            return possible_actions[random.randint(0, len(possible_actions) - 1)]
+            return possible_actions[random.randint(0, len(possible_actions) - 1)], False
 
 
 if __name__ == "__main__":
-    import SagradaSimulator.game as simulator
+    #import SagradaSimulator.game as simulator
+    import game as simulator
 
     atr = simulator.attribute
 
@@ -143,19 +145,26 @@ if __name__ == "__main__":
     mcts.load_data("mcts_data.dat")
 
     scores = []
+    for k in range(1000):
+        for i in range(500):
+            for j in range(1000):
+                s, r, game_finished = game.reset()
+                mcts.search(game)
 
-    for i in range(1000):
-        for j in range(1000):
             s, r, game_finished = game.reset()
-            mcts.search(game)
+            while not game_finished:
+                action, not_random = mcts.best_choice(game) 
+                s, r, game_finished = game.step(action)
+                for dice in game.dices_on_table:
+                    print(str(dice), end=" ")
+                print()
+                print(str(game.player.board))
+                print(action, not_random)
+                log.info(f"isNotRandom: {not_random}")
 
-        s, r, game_finished = game.reset()
-        while not game_finished:
-            s, r, game_finished = game.step(mcts.best_choice(game))
+            log.info(f"k: {k}, Epoch: {i}, score {r}")
 
-        log.info(f"Epoch: {i}, score {r}")
+            with open("results.txt", 'a+') as results_file:
+                results_file.write(str(r) + '\n')
 
-        with open("results.txt", 'a+') as results_file:
-            results_file.write(str(r) + '\n')
-
-    mcts.save_data("mcts_data.dat")
+        mcts.save_data("mcts_data.dat")
