@@ -12,7 +12,7 @@ games = []
 
 def get_action_representation(board, action_number):
     dice_number = math.floor((action_number - 1) / board.NUMBER_OF_FIELDS)
-    field_index = (action_number - 1) % board.NUMBER_OF_FIELDS
+    field_index = (action_number) % board.NUMBER_OF_FIELDS
 
     return dice_number, field_index
 
@@ -29,7 +29,7 @@ def index():
 
     name = request.args.get("name")
     board_name = request.args.get("board_name")
-    main_mission_color = request.args.get("main_mission_color")  # STUB
+    main_mission_color = request.args.get("main_mission_color")
     
     game_id = request.args.get("game_id")
     dices = request.args.get("dices")
@@ -57,11 +57,18 @@ def index():
             if temp_dice.initialize_with_string(dice_str) != 0:
                 game.dices_on_table.append(temp_dice)
         print(game.dices_on_table, file=sys.stderr)
+        print(str(game.player.board), file=sys.stderr)
+
 
         action1 = advisor.pick_best_action(game)
         game.step(action1)
-        action2 = advisor.pick_best_action(game)
 
+        action2 = advisor.pick_best_action(game)
+        game.step(action2)
+                
+        print(game.dices_on_table, file=sys.stderr)
+        print(str(game.player.board), file=sys.stderr)
+        
         ret = ""
 
         dice_no1 = len(dices_str)  # must be defined in case action1==0 and action2!=0
@@ -69,9 +76,11 @@ def index():
             ret += "0+0"
         else:
             dice_no1, field_no1 = get_action_representation(game.player.board, action1)
-            ret += dices_str[dice_no1-1] + "+" + str(field_no1)
+            ret += dices_str[dice_no1] + "+" + str(field_no1)
 
         ret += "-"
+
+        
 
         if action2 == 0:
             ret += "0+0"
@@ -79,7 +88,9 @@ def index():
             dice_no2, field_no2 = get_action_representation(game.player.board, action2)
             if dice_no2 >= dice_no1:
                 dice_no2 += 1
-            ret += dices_str[dice_no2-1] + "+" + str(field_no2)
+            ret += dices_str[dice_no2] + "+" + str(field_no2)
+
+
 
         return ret
 
