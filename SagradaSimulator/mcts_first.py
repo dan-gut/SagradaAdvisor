@@ -2,11 +2,11 @@ import math
 import random
 import pickle
 import logging
-
+import copy
+import tqdm
 
 log = logging.getLogger(__name__)
 logging.basicConfig(level="INFO")
-
 
 class MCTS:
 
@@ -45,18 +45,29 @@ class MCTS:
             log.warning("Specified path does not exist! Data will not be loaded.")
 
     @staticmethod
+    def _pick_best_action_greedy(game):
+        maxi = [-50, -1]
+        for _, action in enumerate(game.possible_actions()):
+            game_cp = copy.deepcopy(game)
+            _, r, _ = game_cp.step(action)
+            #print(action, r, maxi[0], maxi[1])
+            if r > maxi[0]:
+                maxi[0] = r
+                maxi[1] = action
+        #print("ret:", maxi[1])
+        return maxi[1]
+
+    @staticmethod
     def _rollout(game):
         game_finished = False
         while not game_finished:
-            possible_actions = game.possible_actions()
-
-            a = possible_actions[random.randint(0, len(possible_actions) - 1)]
-
+            a = MCTS._pick_best_action_greedy(game)
             s, r, game_finished = game.step(a)
 
         return r
 
     def search(self, game):
+        #print((game.player.board))
         s, r, game_finished = game.get_current_state()
         if s not in self.Ps:
             # leaf node
@@ -73,7 +84,7 @@ class MCTS:
         for a in self.As[s]:
             if (s, a) in self.Qsa:
                 u = self.Qsa[(s, a)] + self.C * self.Ps[s][a] * math.sqrt(self.Ns[s]) / (1 + self.Nsa[(s, a)])
-                self.Ps[s][a] = u
+                self.Ps[s][a] = self.Qsa[(s, a)]
             else:
                 u = self.C * self.Ps[s][a] * math.sqrt(self.Ns[s])
 
@@ -83,12 +94,13 @@ class MCTS:
         # making all values positive
 
         min_val = min(self.Ps[s].values())#, key=self.Ps[s].values)
-        #print(min_val, self.Ps[s].values())
-        if min_val < 0:
+        # print(min_val, self.Ps[s].values())
+        if min_val <= 0:
             for (key, val) in self.Ps[s].items():
                 self.Ps[s][key] = val - min_val + 1e-5
-        #print(min_val, self.Ps[s].values())
+        # print(min_val, self.Ps[s].values())
         # normalization
+        
         sum_ps = 1.0 / sum(self.Ps[s].values())
         for (key, val) in self.Ps[s].items():
             self.Ps[s][key] = val * sum_ps
@@ -120,8 +132,7 @@ class MCTS:
         if s in self.Ps:
             return max(self.Ps[s], key=self.Ps[s].get), True
         else:
-            possible_actions = game.possible_actions()
-            return possible_actions[random.randint(0, len(possible_actions) - 1)], False
+            return MCTS._pick_best_action_greedy(game), False
 
 
 if __name__ == "__main__":
@@ -147,9 +158,10 @@ if __name__ == "__main__":
     scores = []
     for k in range(1000):
         for i in range(500):
-            for j in range(1000):
+            for j in range(10):
                 s, r, game_finished = game.reset()
                 mcts.search(game)
+                # print("=====================================")
 
             s, r, game_finished = game.reset()
             while not game_finished:
@@ -166,5 +178,6 @@ if __name__ == "__main__":
 
             with open("results.txt", 'a+') as results_file:
                 results_file.write(str(r) + '\n')
+            # exit(0)
 
         mcts.save_data("mcts_data.dat")

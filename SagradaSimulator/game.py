@@ -305,13 +305,13 @@ class Game:
                 self._dices_to_draw_from.append(Dice.get_random_dice(color))
         
     def toss_random_dices(self, count):
-        # self.dices_on_table.append(Dice(attribute["RED"], attribute['SIX']))
-        # self.dices_on_table.append(Dice(attribute["RED"], attribute['FIVE']))
-        # self.dices_on_table.append(Dice(attribute["BLUE"], attribute['ONE']))
-        # self.dices_on_table.append(Dice(attribute["GREEN"], attribute['FOUR']))
-        for _ in range(count):
-           random_index = random.randint(0, len(self._dices_to_draw_from) - 1)
-           self.dices_on_table.append(self._dices_to_draw_from.pop(random_index))
+        self.dices_on_table.append(Dice(attribute["RED"], attribute['SIX']))
+        self.dices_on_table.append(Dice(attribute["RED"], attribute['FIVE']))
+        self.dices_on_table.append(Dice(attribute["BLUE"], attribute['ONE']))
+        self.dices_on_table.append(Dice(attribute["GREEN"], attribute['FOUR']))
+        # for _ in range(count):
+        #    random_index = random.randint(0, len(self._dices_to_draw_from) - 1)
+        #    self.dices_on_table.append(self._dices_to_draw_from.pop(random_index))
 
     def _get_dice_one_hot(self, dice):
         """One hot vector of 12 values"""
