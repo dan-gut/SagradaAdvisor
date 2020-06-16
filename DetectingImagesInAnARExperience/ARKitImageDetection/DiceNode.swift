@@ -2,8 +2,7 @@
 //  DiceNode.swift
 //  ARKitImageDetection
 //
-//  Created by Piotrek on 08/04/2020.
-//  Copyright © 2020 Apple. All rights reserved.
+//  Created by Piotr Knapczyk on 08/04/2020.
 //
 
 import SceneKit

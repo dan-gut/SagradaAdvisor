@@ -1,6 +1,4 @@
 /*
-See LICENSE folder for this sample’s licensing information.
-
 Abstract:
 Session status management for `ViewController`.
 */
@@ -90,22 +88,6 @@ extension ViewController: ARSessionDelegate {
         DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
             self.isRestartAvailable = true
         }
-    }
-    func renderer(_ renderer: SCNSceneRenderer, updateAtTime time: TimeInterval) {
-        //1. Get The Current Light Estimate
-        guard let lightEstimate = self.sceneView.session.currentFrame?.lightEstimate else { return }
-        
-        //2. Get The Ambient Intensity & Colour Temperatures
-        let ambientLightEstimate = lightEstimate.ambientIntensity
-        
-        let ambientColourTemperature = lightEstimate.ambientColorTemperature
-        
-        print(
-            """
-            Current Light Estimate = \(ambientLightEstimate)
-            Current Ambient Light Colour Temperature Estimate = \(ambientColourTemperature)
-            """)
-        
     }
     
 }

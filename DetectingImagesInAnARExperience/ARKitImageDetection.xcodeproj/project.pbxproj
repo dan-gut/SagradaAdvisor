@@ -9,6 +9,14 @@
 /* Begin PBXBuildFile section */
 		2491B359243E3CF400BE1AF7 /* DiceNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2491B358243E3CF400BE1AF7 /* DiceNode.swift */; };
 		2491B35B243E444400BE1AF7 /* CardWithDice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2491B35A243E444400BE1AF7 /* CardWithDice.swift */; };
+		24D056C5246DEA5400C70A75 /* GameSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24D056C4246DEA5400C70A75 /* GameSession.swift */; };
+		24F3A304246DD8FE00598E39 /* ThresholdProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24F3A302246DD8FE00598E39 /* ThresholdProvider.swift */; };
+		24F3A305246DD8FE00598E39 /* GeometryUtilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24F3A303246DD8FE00598E39 /* GeometryUtilities.swift */; };
+		24F3A307246DD90900598E39 /* DiceDetector.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 24F3A306246DD90900598E39 /* DiceDetector.mlmodel */; };
+		24F3A309246DD93D00598E39 /* ViewController+BoundingBoxes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24F3A308246DD93D00598E39 /* ViewController+BoundingBoxes.swift */; };
+		24F3A30B246DD9B300598E39 /* ViewController+Vision.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24F3A30A246DD9B300598E39 /* ViewController+Vision.swift */; };
+		24F3A30D246DE1B200598E39 /* Die.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24F3A30C246DE1B200598E39 /* Die.swift */; };
+		24F3A30F246DE71500598E39 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24F3A30E246DE71500598E39 /* Extensions.swift */; };
 		3929C48C1E89EC2C00E00B60 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3929C48B1E89EC2C00E00B60 /* AppDelegate.swift */; };
 		3929C48E1E89EC2C00E00B60 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3929C48D1E89EC2C00E00B60 /* ViewController.swift */; };
 		3929C4911E89EC2C00E00B60 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3929C48F1E89EC2C00E00B60 /* Main.storyboard */; };
@@ -19,9 +27,16 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		11063F3B1EBE651B0033EE6D /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		2491B358243E3CF400BE1AF7 /* DiceNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiceNode.swift; sourceTree = "<group>"; };
 		2491B35A243E444400BE1AF7 /* CardWithDice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardWithDice.swift; sourceTree = "<group>"; };
+		24D056C4246DEA5400C70A75 /* GameSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameSession.swift; sourceTree = "<group>"; };
+		24F3A302246DD8FE00598E39 /* ThresholdProvider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ThresholdProvider.swift; sourceTree = "<group>"; };
+		24F3A303246DD8FE00598E39 /* GeometryUtilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GeometryUtilities.swift; sourceTree = "<group>"; };
+		24F3A306246DD90900598E39 /* DiceDetector.mlmodel */ = {isa = PBXFileReference; lastKnownFileType = file.mlmodel; path = DiceDetector.mlmodel; sourceTree = "<group>"; };
+		24F3A308246DD93D00598E39 /* ViewController+BoundingBoxes.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ViewController+BoundingBoxes.swift"; sourceTree = "<group>"; };
+		24F3A30A246DD9B300598E39 /* ViewController+Vision.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ViewController+Vision.swift"; sourceTree = "<group>"; };
+		24F3A30C246DE1B200598E39 /* Die.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Die.swift; sourceTree = "<group>"; };
+		24F3A30E246DE71500598E39 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 		3929C4881E89EC2C00E00B60 /* ARKitImageDetection.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ARKitImageDetection.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3929C48B1E89EC2C00E00B60 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		3929C48D1E89EC2C00E00B60 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -50,6 +65,7 @@
 			isa = PBXGroup;
 			children = (
 				C41366B81EB80DD400EC054A /* StatusViewController.swift */,
+				24F3A30E246DE71500598E39 /* Extensions.swift */,
 			);
 			path = "Additional View Controllers";
 			sourceTree = "<group>";
@@ -68,7 +84,6 @@
 		3929C47F1E89EC2C00E00B60 = {
 			isa = PBXGroup;
 			children = (
-				11063F3B1EBE651B0033EE6D /* README.md */,
 				3929C48A1E89EC2C00E00B60 /* ARKitImageDetection */,
 				3929C4891E89EC2C00E00B60 /* Products */,
 				9ECA44109ECA45A000000001 /* Configuration */,
@@ -88,10 +103,17 @@
 			isa = PBXGroup;
 			children = (
 				3929C48B1E89EC2C00E00B60 /* AppDelegate.swift */,
-				3929C48D1E89EC2C00E00B60 /* ViewController.swift */,
 				2491B358243E3CF400BE1AF7 /* DiceNode.swift */,
 				2491B35A243E444400BE1AF7 /* CardWithDice.swift */,
+				3929C48D1E89EC2C00E00B60 /* ViewController.swift */,
 				C8C12A701F29277B00B011FE /* ViewController+ARSessionDelegate.swift */,
+				24F3A308246DD93D00598E39 /* ViewController+BoundingBoxes.swift */,
+				24F3A303246DD8FE00598E39 /* GeometryUtilities.swift */,
+				24F3A302246DD8FE00598E39 /* ThresholdProvider.swift */,
+				24F3A30A246DD9B300598E39 /* ViewController+Vision.swift */,
+				24F3A30C246DE1B200598E39 /* Die.swift */,
+				24D056C4246DEA5400C70A75 /* GameSession.swift */,
+				24F3A306246DD90900598E39 /* DiceDetector.mlmodel */,
 				1488324B1EFC3EBF0043E0AB /* Additional View Controllers */,
 				1488324C1EFC3ED00043E0AB /* Resources */,
 			);
@@ -189,12 +211,20 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				24F3A30B246DD9B300598E39 /* ViewController+Vision.swift in Sources */,
+				24F3A30F246DE71500598E39 /* Extensions.swift in Sources */,
 				2491B359243E3CF400BE1AF7 /* DiceNode.swift in Sources */,
+				24F3A30D246DE1B200598E39 /* Die.swift in Sources */,
+				24D056C5246DEA5400C70A75 /* GameSession.swift in Sources */,
 				3929C48E1E89EC2C00E00B60 /* ViewController.swift in Sources */,
+				24F3A305246DD8FE00598E39 /* GeometryUtilities.swift in Sources */,
+				24F3A307246DD90900598E39 /* DiceDetector.mlmodel in Sources */,
 				C41366B91EB80DD400EC054A /* StatusViewController.swift in Sources */,
 				C8C12A711F29277B00B011FE /* ViewController+ARSessionDelegate.swift in Sources */,
 				2491B35B243E444400BE1AF7 /* CardWithDice.swift in Sources */,
 				3929C48C1E89EC2C00E00B60 /* AppDelegate.swift in Sources */,
+				24F3A309246DD93D00598E39 /* ViewController+BoundingBoxes.swift in Sources */,
+				24F3A304246DD8FE00598E39 /* ThresholdProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
